@@ -16,23 +16,22 @@
 
 package com.example.android.searchabledict;
 
-import android.app.SearchManager;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.res.Resources;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.provider.BaseColumns;
-import android.text.TextUtils;
-import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
+import android.app.SearchManager;
+import android.content.Context;
+import android.content.res.Resources;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.provider.BaseColumns;
+import android.text.TextUtils;
+import android.util.Log;
 
 /**
  * Contains logic to return specific words from the dictionary, and
@@ -137,13 +136,20 @@ public class DictionaryDatabase {
          * actual columns in the database, creating a simple column alias mechanism
          * by which the ContentProvider does not need to know the real column names
          */
-        SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
-        builder.setTables(FTS_VIRTUAL_TABLE);
-        builder.setProjectionMap(mColumnMap);
-
-        Cursor cursor = builder.query(mDatabaseOpenHelper.getReadableDatabase(),
-                columns, selection, selectionArgs, null, null, null);
-
+//        SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+//        builder.setTables(FTS_VIRTUAL_TABLE);
+//        builder.setProjectionMap(mColumnMap);
+//
+//        Cursor cursor = builder.query(mDatabaseOpenHelper.getReadableDatabase(),
+//                columns, selection, selectionArgs, null, null, null);
+        String word = "ally";
+        int i = 0;
+        MatrixCursor cursor = new MatrixCursor(columns);
+        Map<String, String> result = mDatabaseOpenHelper.getWords(word);
+        for (String key : result.keySet()) {
+          cursor.addRow(new Object[] {i, key, result.get(key)});
+          i++;
+        }
         if (cursor == null) {
             return null;
         } else if (!cursor.moveToFirst()) {
@@ -157,10 +163,11 @@ public class DictionaryDatabase {
     /**
      * This creates/opens the database.
      */
-    private static class DictionaryOpenHelper extends SQLiteOpenHelper {
+    private static class DictionaryOpenHelper {
 
         private final Context mHelperContext;
-        private SQLiteDatabase mDatabase;
+//        private SQLiteDatabase mDatabase;
+        private TreeMap<String, String> mDatabase;
 
         /* Note that FTS3 does not support column constraints and thus, you cannot
          * declare a primary key. However, "rowid" is automatically used as a unique
@@ -173,14 +180,8 @@ public class DictionaryDatabase {
                     KEY_DEFINITION + ");";
 
         DictionaryOpenHelper(Context context) {
-            super(context, DATABASE_NAME, null, DATABASE_VERSION);
             mHelperContext = context;
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-            mDatabase = db;
-            mDatabase.execSQL(FTS_TABLE_CREATE);
+            mDatabase = new TreeMap<String, String>();
             loadDictionary();
         }
 
@@ -226,19 +227,16 @@ public class DictionaryDatabase {
          * @return rowId or -1 if failed
          */
         public long addWord(String word, String definition) {
-            ContentValues initialValues = new ContentValues();
-            initialValues.put(KEY_WORD, word);
-            initialValues.put(KEY_DEFINITION, definition);
-
-            return mDatabase.insert(FTS_VIRTUAL_TABLE, null, initialValues);
+//            ContentValues initialValues = new ContentValues();
+//            initialValues.put(KEY_WORD, word);
+//            initialValues.put(KEY_DEFINITION, definition);
+          mDatabase.put(word, definition);
+          return 1;
+//            return mDatabase.insert(FTS_VIRTUAL_TABLE, null, initialValues);
         }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
-                    + newVersion + ", which will destroy all old data");
-            db.execSQL("DROP TABLE IF EXISTS " + FTS_VIRTUAL_TABLE);
-            onCreate(db);
+        
+        public Map<String, String> getWords(String word) {
+          return mDatabase.tailMap(word, true);
         }
     }
 

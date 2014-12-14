@@ -91,12 +91,12 @@ public class DictionaryProvider extends ContentProvider {
 
         // Use the UriMatcher to see what kind of query we have and format the db query accordingly
         switch (sURIMatcher.match(uri)) {
-            case SEARCH_SUGGEST:
-                if (selectionArgs == null) {
-                  throw new IllegalArgumentException(
-                      "selectionArgs must be provided for the Uri: " + uri);
-                }
-                return getSuggestions(selectionArgs[0]);
+//            case SEARCH_SUGGEST:
+//                if (selectionArgs == null) {
+//                  throw new IllegalArgumentException(
+//                      "selectionArgs must be provided for the Uri: " + uri);
+//                }
+//                return getSuggestions(selectionArgs[0]);
             case SEARCH_WORDS:
                 if (selectionArgs == null) {
                   throw new IllegalArgumentException(

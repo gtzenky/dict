@@ -16,8 +16,8 @@
 
 package com.example.android.searchabledict;
 
-import android.app.Activity;
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
